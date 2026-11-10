@@ -1,0 +1,84 @@
+@use "sass:color";
+@use "sass:list";
+
+$body-background: #f4f4f4;
+$white: #ffffff;
+$text-color: #252525;
+$muted-color: #777777;
+$border-color: #dddddd;
+$accent-color: #a44732;
+$card-colors: (#e8b8a9, #d9917c, #c76b51, #a44732, #713021);
+
+@use "bootstrap/scss/bootstrap" with (
+  $primary: $accent-color,
+  $body-bg: $body-background,
+  $body-color: $text-color,
+  $font-family-sans-serif: ('Montserrat', system-ui, -apple-system, sans-serif),
+  $grid-breakpoints: (xs: 0, sm: 576px, md: 768px, lg: 992px, xl: 1200px, xxl: 1400px, xxxl: 1800px),
+  $container-max-widths: (sm: 540px, md: 720px, lg: 960px, xl: 1140px, xxl: 1320px, xxxl: 1520px)
+);
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+@import "~@fortawesome/fontawesome-free/css/all.min.css";
+
+@mixin card-theme($color) {
+  border-color: color.adjust($color, $lightness: -18%);
+
+  .card-badge {
+    background-color: color.adjust($color, $lightness: 15%);
+    color: color.adjust($color, $lightness: -40%);
+  }
+}
+
+body { min-height: 100vh; margin: 0; display: flex; flex-direction: column; background: $body-background; color: $text-color; }
+html { scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; width: 0; height: 0; }
+body { -ms-overflow-style: none; }
+main { flex: 1 0 auto; padding-top: 28px; }
+main h1 { font-size: 32px; margin-bottom: 26px; }
+.navbar-brand { display: inline-flex; align-items: center; gap: 10px; }
+.site-icon { font-size: 1.1em; color: #ffd166; }
+
+.track-card {
+  overflow: hidden;
+  border-width: 2px;
+  border-style: solid;
+  background: $white;
+  transition: transform .2s ease, box-shadow .2s ease;
+  cursor: pointer;
+
+  &:hover { transform: translateY(-5px); box-shadow: 0 8px 18px rgba(0, 0, 0, .15); }
+
+  .card-img-top { height: 240px; object-fit: cover; }
+  .card-body { padding: 1rem; }
+  .card-title { color: $text-color; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .card-text { color: $text-color; font-size: 14px; line-height: 1.5; }
+  .card-date { font-size: 13px; margin-bottom: 12px; }
+}
+
+@for $i from 1 through list.length($card-colors) {
+  .col:nth-child(5n + #{$i}) .track-card { @include card-theme(list.nth($card-colors, $i)); }
+}
+
+.card-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn-primary { --bs-btn-bg: #{$accent-color}; --bs-btn-border-color: #{$accent-color}; --bs-btn-hover-bg: #{color.adjust($accent-color, $lightness: -10%)}; --bs-btn-hover-border-color: #{color.adjust($accent-color, $lightness: -10%)}; }
+.album-form, .album-detail { max-width: 720px; margin-inline: auto; }
+.album-cover { width: 100%; max-width: 320px; aspect-ratio: 1; object-fit: cover; border-radius: 10px; }
+
+footer { flex: 0 0 auto; margin-top: auto; padding: 18px 0 18px 20px; border-top: 1px solid $border-color; }
+footer p { margin: 0; font-size: 14px; }
+footer .social-links { display: flex; gap: 10px; margin-left: 0; }
+footer .social-link { width: 32px; height: 32px; border: 1px solid $text-color; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: $text-color; text-decoration: none; font-size: 12px; font-weight: 700; }
+footer .social-link:hover { background: $muted-color; color: $white; }
+
+.genre-hint { border: 0; border-bottom: 1px dashed currentColor; background: transparent; color: $accent-color; padding: 0; cursor: help; }
+@media (max-width: 575.98px) { main h1 { font-size: 27px; } footer { flex-wrap: wrap; } }

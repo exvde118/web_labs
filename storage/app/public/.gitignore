@@ -1,0 +1,6 @@
+*
+!.gitignore
+!albums/
+albums/*
+!albums/seed/
+!albums/seed/**
