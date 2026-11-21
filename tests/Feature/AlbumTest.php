@@ -2,6 +2,7 @@
 namespace Tests\Feature;
 
 use App\Models\Album;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -16,8 +17,9 @@ class AlbumTest extends TestCase
         $this->seed();
         $this->assertDatabaseCount('albums', 5);
         $this->get('/')->assertRedirect('/albums');
-        $this->get(route('albums.create'))->assertOk();
-        foreach (Album::all() as $album) {
+        $this->actingAs(User::firstOrFail())->get(route('albums.create'))->assertOk();
+        foreach (Album::with('user')->get() as $album) {
+            $this->actingAs($album->user);
             $this->get(route('albums.index'))->assertOk()->assertSee($album->title);
             $this->get(route('albums.show', $album))->assertOk()->assertSee($album->genre);
             $this->get(route('albums.edit', $album))->assertOk()->assertSee($album->title);
@@ -36,10 +38,14 @@ class AlbumTest extends TestCase
     public function test_image_upload_resize_and_replacement(): void
     {
         Storage::fake('public');
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $this->actingAs($user);
         $data = ['title' => ' Новый альбом ', 'description' => 'Описание', 'genre' => 'Ambient', 'release_date' => '2024-03-12'];
-        $this->post(route('albums.store'), $data + ['image' => UploadedFile::fake()->image('cover.png', 1000, 700)])
+        $this->post(route('albums.store'), $data + ['image' => UploadedFile::fake()->image('cover.png', 1000, 700), 'user_id' => $otherUser->id])
             ->assertSessionHasNoErrors()->assertRedirect();
         $album = Album::firstOrFail();
+        $this->assertSame($user->id, $album->user_id);
         $this->assertSame('Новый альбом', $album->title);
         $oldPath = $album->image_path;
         Storage::disk('public')->assertExists($oldPath);
@@ -53,6 +59,7 @@ class AlbumTest extends TestCase
 
     public function test_validation_rejects_missing_fields_invalid_dates_and_non_images(): void
     {
+        $this->actingAs(User::factory()->create());
         $this->post(route('albums.store'), [])->assertSessionHasErrors(['title', 'description', 'genre', 'image']);
         $this->post(route('albums.store'), [
             'title' => 'Альбом', 'description' => 'Описание', 'genre' => 'Ambient',

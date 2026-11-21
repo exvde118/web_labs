@@ -12,12 +12,16 @@
     </p>
     @if ($album->release_date)<p>Дата выхода: {{ $album->release_date->format('d.m.Y') }}</p>@endif
     <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-outline-secondary" href="{{ route('albums.index') }}">Назад</a>
-        <a class="btn btn-primary" href="{{ route('albums.edit', $album) }}">Редактировать</a>
-        <form method="POST" action="{{ route('albums.destroy', $album) }}">
-            @csrf @method('DELETE')
-            <button class="btn btn-danger" type="submit">Удалить</button>
-        </form>
+        <a class="btn btn-outline-secondary" href="{{ route('users.albums', $album->user->username) }}">Треки {{ '@'.$album->user->username }}</a>
+        @can('update-album', $album)
+            <a class="btn btn-primary" href="{{ route('albums.edit', $album) }}">Редактировать</a>
+        @endcan
+        @can('delete-album', $album)
+            <form method="POST" action="{{ route('albums.destroy', $album) }}">
+                @csrf @method('DELETE')
+                <button class="btn btn-danger" type="submit">Удалить</button>
+            </form>
+        @endcan
     </div>
 </div>
 @endsection

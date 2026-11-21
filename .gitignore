@@ -1,0 +1,8 @@
+/.env
+/.env.*
+!/.env.example
+/.phpunit.result.cache
+/node_modules
+/vendor
+/public/storage
+/storage/app/public/albums/uploads

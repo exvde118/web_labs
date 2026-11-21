@@ -1,30 +1,45 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Album;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class AlbumController extends Controller
 {
     public function index()
     {
-        return view('albums.index', ['albums' => Album::orderBy('id')->get()]);
+        return view('albums.index', ['albums' => Album::with('user')->orderBy('id')->get()]);
     }
 
     public function create()
     {
+        Gate::authorize('create-album');
+
         return view('albums.create', ['album' => new Album]);
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('create-album');
+
         $data = $this->validated($request);
         $data['image_path'] = $this->saveImage($request->file('image'));
-        $album = Album::create($data);
+
+        try {
+            $album = $request->user()->albums()->create($data);
+        } catch (Throwable $exception) {
+            $this->deleteUploadedImage($data['image_path']);
+            throw $exception;
+        }
+
         return redirect()->route('albums.show', $album)->with('status', 'Альбом добавлен.');
     }
 
@@ -35,28 +50,83 @@ class AlbumController extends Controller
 
     public function edit(Album $album)
     {
+        Gate::authorize('update-album', $album);
+
         return view('albums.edit', compact('album'));
     }
 
     public function update(Request $request, Album $album)
     {
+        Gate::authorize('update-album', $album);
+
         $data = $this->validated($request, true);
-        $oldImage = $album->image_path;
         if ($request->hasFile('image')) {
             $data['image_path'] = $this->saveImage($request->file('image'));
         }
-        $album->update($data);
-        if (isset($data['image_path']) && str_starts_with($oldImage, 'albums/uploads/')) {
-            Storage::disk('public')->delete($oldImage);
+
+        try {
+            $oldImage = DB::transaction(function () use ($album, $data) {
+                $current = Album::query()->lockForUpdate()->findOrFail($album->id);
+                $oldImage = $current->image_path;
+                $current->update($data);
+
+                return $oldImage;
+            });
+        } catch (Throwable $exception) {
+            if (isset($data['image_path'])) {
+                $this->deleteUploadedImage($data['image_path']);
+            }
+            throw $exception;
         }
+
+        if (isset($data['image_path'])) {
+            $this->deleteUploadedImage($oldImage);
+        }
+
         return redirect()->route('albums.show', $album)->with('status', 'Альбом изменён.');
     }
 
     public function destroy(Album $album)
     {
-        $album->delete();
-        return redirect()->route('albums.index')->with('status', 'Альбом удалён.');
+        Gate::authorize('delete-album', $album);
+        DB::transaction(function () use ($album) {
+            Album::query()->lockForUpdate()->findOrFail($album->id)->delete();
+        });
+
+        return redirect()->route('albums.index')->with('status', 'Альбом мягко удалён.');
     }
+
+    public function restore(Album $album)
+    {
+        DB::transaction(function () use ($album) {
+            Album::withTrashed()->lockForUpdate()->findOrFail($album->id)->restore();
+        });
+
+        return redirect()->route('users.trash', $album->user->username)->with('status', 'Альбом восстановлен.');
+    }
+
+    public function forceDelete(Album $album)
+    {
+        $owner = $album->user->username;
+        $image = DB::transaction(function () use ($album) {
+            $current = Album::withTrashed()->lockForUpdate()->findOrFail($album->id);
+            $current->forceDelete();
+
+            return $current->image_path;
+        });
+
+        $this->deleteUploadedImage($image);
+
+        return redirect()->route('users.trash', $owner)->with('status', 'Альбом удалён навсегда.');
+    }
+
+    private function deleteUploadedImage(string $path): void
+    {
+        if (str_starts_with($path, 'albums/uploads/')) {
+            rescue(fn () => Storage::disk('public')->delete($path));
+        }
+    }
+
 
     private function validated(Request $request, bool $editing = false): array
     {
@@ -99,10 +169,10 @@ class AlbumController extends Controller
         ob_start();
         imagejpeg($target, null, 90);
         $contents = ob_get_clean();
-        imagedestroy($source);
-        imagedestroy($target);
         $path = 'albums/uploads/'.Str::uuid().'.jpg';
-        Storage::disk('public')->put($path, $contents);
+        if (! Storage::disk('public')->put($path, $contents)) {
+            throw ValidationException::withMessages(['image' => 'Не удалось сохранить обложку.']);
+        }
         return $path;
     }
 }

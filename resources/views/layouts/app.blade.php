@@ -20,7 +20,22 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link active" href="{{ route('albums.index') }}">Главная</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ route('albums.create') }}">Добавить трек</a></li>
+                @auth
+                    <li class="nav-item"><a class="nav-link" href="{{ route('users.index') }}">Пользователи</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('users.albums', auth()->user()->username) }}">Мои треки</a></li>
+                    @can('create-album')
+                        <li class="nav-item"><a class="nav-link" href="{{ route('albums.create') }}">Добавить трек</a></li>
+                    @endcan
+                    <li class="nav-item">
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="nav-link">{{ 'Выйти ('.auth()->user()->username.')' }}</button>
+                        </form>
+                    </li>
+                @else
+                    <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Вход</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Регистрация</a></li>
+                @endauth
             </ul>
         </div>
     </div>

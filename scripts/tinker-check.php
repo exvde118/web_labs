@@ -1,11 +1,13 @@
 <?php
 
-use App\Models\Album;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 DB::beginTransaction();
 try {
-    $album = Album::create([
+    $user = User::query()->firstOrFail();
+    auth()->setUser($user);
+    $album = $user->albums()->create([
         'title' => ' Проверка Tinker ',
         'description' => 'Тест создания объекта через Eloquent.',
         'genre' => 'Ambient',
