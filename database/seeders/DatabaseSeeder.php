@@ -16,14 +16,14 @@ class DatabaseSeeder extends Seeder
 
         DB::transaction(function () use ($albums) {
             $owners = [
-                User::firstOrCreate(['email' => 'anna@example.test'], [
-                    'name' => 'Анна',
-                    'username' => 'anna',
+                User::firstOrCreate(['email' => 'dan@example.test'], [
+                    'name' => 'dan',
+                    'username' => 'dan',
                     'password' => Str::random(48),
                 ]),
-                User::firstOrCreate(['email' => 'editor@example.test'], [
-                    'name' => 'Редактор',
-                    'username' => 'editor',
+                User::firstOrCreate(['email' => 'admin@example.test'], [
+                    'name' => 'Админ',
+                    'username' => 'admin',
                     'password' => Str::random(48),
                 ]),
             ];

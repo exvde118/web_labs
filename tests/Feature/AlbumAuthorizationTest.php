@@ -18,16 +18,16 @@ class AlbumAuthorizationTest extends TestCase
     public function test_members_can_browse_catalogs_by_username_and_id(): void
     {
         $this->seed();
-        $anna = User::whereUsername('anna')->firstOrFail();
-        $editor = User::whereUsername('editor')->firstOrFail();
-        $annaAlbum = $anna->albums()->firstOrFail();
-        $editorAlbum = $editor->albums()->firstOrFail();
+        $dan = User::whereUsername('dan')->firstOrFail();
+        $admin = User::whereUsername('admin')->firstOrFail();
+        $danAlbum = $dan->albums()->firstOrFail();
+        $adminAlbum = $admin->albums()->firstOrFail();
 
-        $this->get('/users/anna')->assertRedirect(route('login'));
-        $this->actingAs($editor)->get('/users')->assertOk()->assertSee('@anna')->assertSee('@editor');
-        $this->get('/users/'.$anna->id)->assertRedirect('/users/anna');
-        $this->get('/users/anna')->assertOk()->assertSee($annaAlbum->title)->assertDontSee($editorAlbum->title);
-        $this->get('/users/editor')->assertOk()->assertSee($editorAlbum->title)->assertDontSee($annaAlbum->title);
+        $this->get('/users/dan')->assertRedirect(route('login'));
+        $this->actingAs($admin)->get('/users')->assertOk()->assertSee('@dan')->assertSee('@admin');
+        $this->get('/users/'.$dan->id)->assertRedirect('/users/dan');
+        $this->get('/users/dan')->assertOk()->assertSee($danAlbum->title)->assertDontSee($adminAlbum->title);
+        $this->get('/users/admin')->assertOk()->assertSee($adminAlbum->title)->assertDontSee($danAlbum->title);
     }
 
     public function test_guests_and_non_owners_cannot_change_albums(): void
