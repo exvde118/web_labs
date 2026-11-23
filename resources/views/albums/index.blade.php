@@ -1,6 +1,12 @@
 @extends('layouts.app')
+@if ($isFriendsFeed ?? false)
+    @section('title', 'Лента друзей')
+@endif
+
 @section('content')
-@if (isset($owner))
+@if ($isFriendsFeed ?? false)
+    <h1 class="text-center mb-4">Лента друзей</h1>
+@elseif (isset($owner))
     <h1 class="text-center mb-3">Треки пользователя {{ '@'.$owner->username }}</h1>
     <div class="d-flex justify-content-center flex-wrap gap-2 mb-4">
         <a class="btn btn-outline-secondary" href="{{ route('users.index') }}">Все пользователи</a>
@@ -17,7 +23,11 @@
 @endif
 
 @if ($albums->isEmpty())
-    <p class="text-center">Альбомов пока нет.</p>
+    @if ($isFriendsFeed ?? false)
+        <p class="text-center">В ленте пока нет треков. <a href="{{ route('users.index') }}">Найти друзей</a></p>
+    @else
+        <p class="text-center">Альбомов пока нет.</p>
+    @endif
 @endif
 
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 row-cols-xxxl-5 g-4" id="cards-container">
@@ -35,6 +45,9 @@
                     @endif
                     <p class="card-text">{{ $album->description }}</p>
                     <div class="mt-auto">
+                        @if (($isFriendsFeed ?? false) && $album->created_at)
+                            <p class="card-text card-date">Добавлен <time datetime="{{ $album->created_at->toIso8601String() }}">{{ $album->created_at->format('d.m.Y H:i:s') }}</time></p>
+                        @endif
                         @if ($album->release_date)
                             <p class="card-text card-date">Дата выпуска: <time datetime="{{ $album->release_date->format('Y-m-d') }}">{{ $album->release_date->format('d.m.Y') }}</time></p>
                         @endif

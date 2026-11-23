@@ -21,6 +21,7 @@
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link active" href="{{ route('albums.index') }}">Главная</a></li>
                 @auth
+                    <li class="nav-item"><a class="nav-link" href="{{ route('feed') }}">Лента друзей</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('users.index') }}">Пользователи</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('users.albums', auth()->user()->username) }}">Мои треки</a></li>
                     @can('create-album')

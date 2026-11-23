@@ -2,9 +2,12 @@
     <h2 class="h4">Комментарии</h2>
 
     @forelse ($album->comments as $comment)
-        <article class="border rounded p-3 mb-3">
+        <article @class(['border rounded p-3 mb-3', 'border-primary bg-primary-subtle' => $friendIds->has($comment->user_id)])>
             <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                 <a class="fw-semibold" href="{{ route('users.albums', $comment->user->username) }}">{{ $comment->user->name }}</a>
+                @if ($friendIds->has($comment->user_id))
+                    <span class="badge text-bg-primary">Друг</span>
+                @endif
                 <time class="small text-body-secondary" datetime="{{ $comment->created_at->toIso8601String() }}">
                     {{ $comment->created_at->format('d.m.Y H:i') }}
                 </time>

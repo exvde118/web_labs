@@ -43,11 +43,14 @@ class AlbumController extends Controller
         return redirect()->route('albums.show', $album)->with('status', 'Альбом добавлен.');
     }
 
-    public function show(Album $album)
+    public function show(Request $request, Album $album)
     {
         $album->load(['user', 'comments' => fn ($query) => $query->with('user')->oldest()->orderBy('id')]);
 
-        return view('albums.show', compact('album'));
+        return view('albums.show', [
+            'album' => $album,
+            'friendIds' => $request->user()->friends()->allRelatedIds()->flip(),
+        ]);
     }
 
     public function edit(Album $album)

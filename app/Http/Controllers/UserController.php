@@ -4,14 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         return view('users.index', [
             'users' => User::withCount('albums')->orderBy('username')->get(),
+            'friendIds' => $request->user()->friends()->allRelatedIds()->flip(),
         ]);
     }
 

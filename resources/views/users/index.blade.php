@@ -10,9 +10,14 @@
                     <a href="{{ route('users.albums', $user->username) }}">{{ $user->name }} ({{ '@'.$user->username }})</a>
                     <span class="text-body-secondary"> · Записей {{ $user->albums_count }}</span>
                 </div>
-                @can('view-album-trash')
-                    <a class="btn btn-sm btn-outline-secondary" href="{{ route('users.trash', $user->username) }}">Включая удалённые</a>
-                @endcan
+                <div class="d-flex flex-wrap gap-2">
+                    @if (auth()->id() !== $user->id)
+                        @include('users._friendship')
+                    @endif
+                    @can('view-album-trash')
+                        <a class="btn btn-sm btn-outline-secondary" href="{{ route('users.trash', $user->username) }}">Включая удалённые</a>
+                    @endcan
+                </div>
             </li>
         @endforeach
     </ul>
