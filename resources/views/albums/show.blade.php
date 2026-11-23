@@ -23,5 +23,7 @@
             </form>
         @endcan
     </div>
+
+    @include('albums._comments')
 </div>
 @endsection

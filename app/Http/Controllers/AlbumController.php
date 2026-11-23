@@ -45,6 +45,8 @@ class AlbumController extends Controller
 
     public function show(Album $album)
     {
+        $album->load(['user', 'comments' => fn ($query) => $query->with('user')->oldest()->orderBy('id')]);
+
         return view('albums.show', compact('album'));
     }
 

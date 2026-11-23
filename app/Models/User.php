@@ -53,4 +53,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Album::class);
     }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

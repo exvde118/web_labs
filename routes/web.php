@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AlbumController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +18,7 @@ Route::middleware('auth')->group(function () {
         ->withTrashed()->can('restore-album', 'album')->name('albums.restore');
     Route::delete('albums/{album}/force', [AlbumController::class, 'forceDelete'])
         ->withTrashed()->can('force-delete-album', 'album')->name('albums.force-delete');
+    Route::post('albums/{album}/comments', [CommentController::class, 'store'])->name('albums.comments.store');
     Route::resource('albums', AlbumController::class);
 });
 
